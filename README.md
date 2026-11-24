@@ -72,13 +72,15 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 
 1. Supabase 프로젝트를 만들고 [supabase/schema.sql](supabase/schema.sql)을 SQL Editor에서 실행합니다.
 2. Authentication → Providers에서 Google을 활성화하고 Google Client ID·Secret을 입력합니다.
-3. Authentication → URL Configuration에 로컬 개발 URL을 등록합니다.
+3. Authentication → URL Configuration에서 운영 주소와 로컬 개발 URL을 등록합니다.
 
    ```text
    Site URL
-   http://localhost:9050
+   https://imakotoba.serene1004.dev
 
    Redirect URLs
+   https://imakotoba.serene1004.dev
+   https://imakotoba.serene1004.dev/**
    http://localhost:9050/**
    ```
 
@@ -87,6 +89,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
    ```text
    Authorized JavaScript origins
    http://localhost:9050
+   https://imakotoba.serene1004.dev
 
    Authorized redirect URIs
    https://your-project-ref.supabase.co/auth/v1/callback
@@ -96,7 +99,9 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 
 ## Vercel 배포
 
-GitHub 저장소를 Vercel에 Import하여 배포합니다. 이 프로젝트는 pnpm을 사용하므로 다음 설정을 확인합니다.
+GitHub 저장소 [`serene1004/imaKotoba`](https://github.com/serene1004/imaKotoba)를 Vercel에 Import하여 배포합니다. 레포명을 변경한 뒤 기존 Vercel 프로젝트의 Git 연결이 끊겨 있다면 **Settings → Git → Connected Git Repository**에서 새 저장소를 다시 연결합니다. 연결이 유지되고 있으면 빌드 설정은 바꿀 필요가 없습니다.
+
+이 프로젝트는 pnpm을 사용하므로 다음 설정을 확인합니다.
 
 ```text
 Framework Preset: Vite
@@ -114,18 +119,18 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 
 `VITE_`로 시작하는 값은 브라우저 번들에 포함됩니다. publishable key 이외의 비밀값, 특히 `service_role` 키는 등록하거나 배포하면 안 됩니다.
 
-배포 주소가 `https://your-project.vercel.app`일 때 Google 로그인이 동작하도록 다음 주소도 추가합니다.
+운영 주소는 `https://imakotoba.serene1004.dev`입니다. Google 로그인이 동작하도록 다음 주소를 설정합니다.
 
 ```text
 Supabase → Authentication → URL Configuration
 Site URL
-https://your-project.vercel.app
+https://imakotoba.serene1004.dev
 
 Redirect URLs
-https://your-project.vercel.app/**
+https://imakotoba.serene1004.dev/**
 
 Google Cloud OAuth client → Authorized JavaScript origins
-https://your-project.vercel.app
+https://imakotoba.serene1004.dev
 
 Google Cloud OAuth client → Authorized redirect URIs
 https://your-project-ref.supabase.co/auth/v1/callback
