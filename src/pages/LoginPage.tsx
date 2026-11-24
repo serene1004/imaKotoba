@@ -3,9 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import GoogleIcon from '../components/ui/GoogleIcon';
 
 type AuthAction = () => Promise<string | null>;
-type LoginPageProps = { onStartGuest: () => void; onGoogleLogin: AuthAction };
+type LoginPageProps = {
+  onStartGuest: () => void;
+  onGoogleLogin: AuthAction;
+  signOutNotice: string;
+};
 
-function LoginPage({ onStartGuest, onGoogleLogin }: LoginPageProps) {
+function LoginPage({ onStartGuest, onGoogleLogin, signOutNotice }: LoginPageProps) {
   const navigate = useNavigate();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState('');
@@ -50,6 +54,7 @@ function LoginPage({ onStartGuest, onGoogleLogin }: LoginPageProps) {
             <button className="google-login" type="button" onClick={handleGoogleLogin} disabled={pending}><GoogleIcon />{pending ? 'Google로 이동 중...' : 'Google로 계속하기'}</button>
           </section>
         </div>
+        {signOutNotice && <p className="login-note login-note-error" role="alert">{signOutNotice}</p>}
         {message && <p className="login-note" role="status">{message}</p>}
       </section>
     </main>

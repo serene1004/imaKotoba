@@ -1,13 +1,7 @@
 import { Trash2 } from 'lucide-react';
-import type { HistoryGroup, WeeklyDay } from '../types/journal';
+import type { EmotionStat, HistoryGroup, WeeklyDay } from '../types/journal';
 import EmotionChart from '../components/charts/EmotionChart';
 import WeeklyChart from '../components/charts/WeeklyChart';
-
-type EmotionStat = {
-  icon: string;
-  label: string;
-  count: number;
-};
 
 type JournalProfileProps = {
   displayName: string;
@@ -17,7 +11,10 @@ type JournalProfileProps = {
   total: number;
   emotionStats: EmotionStat[];
   deletingEntryId: string | null;
-  onDeleteEntry: (entryId: string) => void;
+  pending: boolean;
+  error: string;
+  onRetry: () => Promise<boolean>;
+  onDeleteEntry: (entryId: string, index: number) => void;
 };
 
 function JournalProfile({
@@ -28,8 +25,15 @@ function JournalProfile({
   total,
   emotionStats,
   deletingEntryId,
+  pending,
+  error,
+  onRetry,
   onDeleteEntry,
 }: JournalProfileProps) {
+  const historyIndexById = new Map(
+    groups.flatMap((group) => group.entries).map((entry, index) => [entry.id, index]),
+  );
+
   return (
     <section className="page history-page">
       <div className="profile-overview">
@@ -38,7 +42,14 @@ function JournalProfile({
           {displayName}님의 <em>마음 기록</em>
         </h1>
       </div>
-      <div className="profile-statistics">
+      {pending && <p role="status">기록을 불러오는 중입니다.</p>}
+      {error && (
+        <div role="alert">
+          <p>{error}</p>
+          <button type="button" onClick={() => { onRetry(); }}>다시 시도</button>
+        </div>
+      )}
+      {!pending && !error && <div className="profile-statistics">
         <section className="weekly-summary" aria-labelledby="weekly-summary-title">
           <div className="weekly-summary-header">
             <div>
@@ -53,9 +64,10 @@ function JournalProfile({
           <h2 id="emotion-summary-title">이번 주 마음</h2>
           <EmotionChart stats={emotionStats} total={total} />
         </section>
-      </div>
-      <h2 className="history-title">작성한 글</h2>
-      <div className="history-list" aria-label="지난 기록 목록">
+      </div>}
+      {!pending && !error && <h2 className="history-title" data-history-title tabIndex={-1}>작성한 글</h2>}
+      {!pending && !error && <div className="history-list" aria-label="지난 기록 목록">
+        {groups.length === 0 && <p>아직 작성한 기록이 없습니다.</p>}
         {groups.map((group) => (
           <article className="history-group" key={group.dayKey}>
             <h2>
@@ -73,7 +85,8 @@ function JournalProfile({
                 <button
                   className="history-delete"
                   type="button"
-                  onClick={() => onDeleteEntry(entry.id)}
+                  data-history-delete
+                  onClick={() => onDeleteEntry(entry.id, historyIndexById.get(entry.id) ?? 0)}
                   disabled={deletingEntryId === entry.id}
                   aria-label={`${entry.japanese} 기록 삭제`}
                 >
@@ -84,7 +97,7 @@ function JournalProfile({
             ))}
           </article>
         ))}
-      </div>
+      </div>}
     </section>
   );
 }

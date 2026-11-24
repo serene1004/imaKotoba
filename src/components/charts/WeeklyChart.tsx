@@ -6,8 +6,8 @@ import {
   Tooltip,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import type { WeeklyDay } from '../../types/journal';
 
-type WeeklyDay = { key: string; label: string; count: number };
 type WeeklyChartProps = { days: WeeklyDay[]; total: number; todayKey: string };
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
@@ -51,6 +51,9 @@ function WeeklyChart({ days, total, todayKey }: WeeklyChartProps) {
           },
         }}
       />
+      <ul className="visually-hidden" aria-label="요일별 기록 수">
+        {days.map((day) => <li key={day.key}>{day.label}: {day.count}개</li>)}
+      </ul>
     </div>
   );
 }

@@ -7,6 +7,7 @@ type ConfirmDialogProps = {
   errorMessage: string;
   onCancel: () => void;
   onConfirm: () => void;
+  getFallbackFocus: () => HTMLElement | null;
 };
 
 function ConfirmDialog({
@@ -15,28 +16,51 @@ function ConfirmDialog({
   errorMessage,
   onCancel,
   onConfirm,
+  getFallbackFocus,
 }: ConfirmDialogProps) {
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
+  const pendingRef = useRef(pending);
+  const onCancelRef = useRef(onCancel);
+  const getFallbackFocusRef = useRef(getFallbackFocus);
+  pendingRef.current = pending;
+  onCancelRef.current = onCancel;
+  getFallbackFocusRef.current = getFallbackFocus;
 
   useEffect(() => {
     if (!open) return undefined;
 
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const appRoot = document.getElementById('root');
+    const wasInert = appRoot?.inert ?? false;
+    if (appRoot) appRoot.inert = true;
     cancelButtonRef.current?.focus();
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !pending) onCancel();
+      if (event.key === 'Escape' && !pendingRef.current) onCancelRef.current();
 
       if (event.key !== 'Tab') return;
 
       const focusableElements = dialogRef.current?.querySelectorAll<HTMLElement>(
         'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
       );
-      if (!focusableElements?.length) return;
+      if (!focusableElements?.length) {
+        event.preventDefault();
+        dialogRef.current?.focus();
+        return;
+      }
 
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
 
-      if (event.shiftKey && document.activeElement === firstElement) {
+      if (document.activeElement === dialogRef.current) {
+        event.preventDefault();
+        (event.shiftKey ? lastElement : firstElement).focus();
+      } else if (!dialogRef.current?.contains(document.activeElement)) {
+        event.preventDefault();
+        firstElement.focus();
+      } else if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault();
         lastElement.focus();
       } else if (!event.shiftKey && document.activeElement === lastElement) {
@@ -46,8 +70,22 @@ function ConfirmDialog({
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onCancel, open, pending]);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (appRoot) appRoot.inert = wasInert;
+      if (previouslyFocused?.isConnected && !previouslyFocused.hasAttribute('disabled')) {
+        previouslyFocused.focus();
+      } else {
+        getFallbackFocusRef.current()?.focus();
+      }
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (pending) dialogRef.current?.focus();
+    else cancelButtonRef.current?.focus();
+  }, [open, pending]);
 
   if (!open) return null;
 
@@ -56,8 +94,10 @@ function ConfirmDialog({
       <section
         ref={dialogRef}
         className="confirm-dialog"
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
+        aria-busy={pending}
         aria-labelledby="delete-dialog-title"
         aria-describedby="delete-dialog-description"
       >

@@ -8,9 +8,22 @@ type JournalHomeProps = {
   pending: boolean;
   error: string;
   onWrite: () => void;
+  onRetry: () => Promise<boolean>;
 };
 
-function JournalHome({ displayName, today, entries, pending, error, onWrite }: JournalHomeProps) {
+function JournalHome({
+  displayName,
+  today,
+  entries,
+  pending,
+  error,
+  onWrite,
+  onRetry,
+}: JournalHomeProps) {
+  let recordCount = `${entries.length}개`;
+  if (pending) recordCount = '불러오는 중';
+  if (error) recordCount = '확인할 수 없음';
+
   const dateLabel = new Intl.DateTimeFormat('ko-KR', {
     year: 'numeric',
     month: 'long',
@@ -39,10 +52,16 @@ function JournalHome({ displayName, today, entries, pending, error, onWrite }: J
       </div>
       <div className="record-count">
         <span>오늘의 기록</span>
-        <strong>{entries.length}개</strong>
+        <strong>{recordCount}</strong>
       </div>
       <section className="timeline" aria-label="오늘의 기록">
         {pending && <p>기록을 불러오는 중입니다.</p>}
+        {error && (
+          <div role="alert">
+            <p>{error}</p>
+            <button type="button" onClick={() => { onRetry(); }}>다시 시도</button>
+          </div>
+        )}
         {!pending && !error && entries.length === 0 && <p>오늘의 첫 기록을 남겨보세요.</p>}
         {entries.map((entry) => (
           <article className="entry-card" key={entry.id}>

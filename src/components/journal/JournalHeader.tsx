@@ -6,8 +6,9 @@ type JournalHeaderProps = {
   isGuest: boolean;
   onHome: () => void;
   onProfile: () => void;
-  onSignOut: () => Promise<void>;
+  onSignOut: () => Promise<string | null>;
   onExitGuest: () => void;
+  signOutError: string;
 };
 
 function JournalHeader({
@@ -17,6 +18,7 @@ function JournalHeader({
   onProfile,
   onSignOut,
   onExitGuest,
+  signOutError,
 }: JournalHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -45,8 +47,8 @@ function JournalHeader({
   };
 
   const signOut = async () => {
-    setMenuOpen(false);
-    await onSignOut();
+    const error = await onSignOut();
+    if (!error) setMenuOpen(false);
   };
 
   const exitGuest = () => {
@@ -82,41 +84,44 @@ function JournalHeader({
           </span>
         </button>
         {menuOpen && (
-          <div className="profile-popover" role="menu" aria-label="계정 메뉴">
-            <button
-              className="profile-menu-item"
-              type="button"
-              role="menuitem"
-              onMouseDown={(event) => event.stopPropagation()}
-              onClick={showProfile}
-            >
-              <UserRound size={16} aria-hidden="true" />
-              내 정보로 이동
-            </button>
-            {isGuest ? (
+          <>
+            <div className="profile-popover" role="menu" aria-label="계정 메뉴">
               <button
                 className="profile-menu-item"
                 type="button"
                 role="menuitem"
                 onMouseDown={(event) => event.stopPropagation()}
-                onClick={exitGuest}
+                onClick={showProfile}
               >
-                <LogIn size={16} aria-hidden="true" />
-                로그인 화면으로
+                <UserRound size={16} aria-hidden="true" />
+                내 정보로 이동
               </button>
-            ) : (
-              <button
-                className="profile-menu-item danger"
-                type="button"
-                role="menuitem"
-                onMouseDown={(event) => event.stopPropagation()}
-                onClick={signOut}
-              >
-                <LogOut size={16} aria-hidden="true" />
-                로그아웃
-              </button>
-            )}
-          </div>
+              {isGuest ? (
+                <button
+                  className="profile-menu-item"
+                  type="button"
+                  role="menuitem"
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onClick={exitGuest}
+                >
+                  <LogIn size={16} aria-hidden="true" />
+                  로그인 화면으로
+                </button>
+              ) : (
+                <button
+                  className="profile-menu-item danger"
+                  type="button"
+                  role="menuitem"
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onClick={signOut}
+                >
+                  <LogOut size={16} aria-hidden="true" />
+                  로그아웃
+                </button>
+              )}
+            </div>
+            {signOutError && <p className="account-error" role="alert">{signOutError}</p>}
+          </>
         )}
       </div>
     </header>

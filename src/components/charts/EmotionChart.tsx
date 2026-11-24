@@ -4,12 +4,7 @@ import {
   Tooltip,
 } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-
-type EmotionStat = {
-  icon: string;
-  label: string;
-  count: number;
-};
+import type { EmotionStat } from '../../types/journal';
 
 type EmotionChartProps = {
   stats: EmotionStat[];
@@ -66,7 +61,7 @@ function EmotionChart({ stats, total }: EmotionChartProps) {
         <strong>{total}</strong>
       </div>
       <ul className="emotion-legend" aria-label="감정별 기록 수">
-        {stats.slice(0, 3).map((stat, index) => (
+        {stats.map((stat, index) => (
           <li key={stat.label}>
             <span
               className="emotion-dot"
