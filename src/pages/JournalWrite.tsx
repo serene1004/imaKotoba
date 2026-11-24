@@ -59,6 +59,7 @@ function JournalWrite({
               key={item.label}
               onClick={() => onSelectEmotion(item)}
               aria-label={item.label}
+              aria-pressed={selectedEmotion.label === item.label}
             >
               {item.icon}
             </button>
